@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "682329699660",
+    "firebase_url": "https://managementeviros.firebaseio.com",
+    "project_id": "managementeviros",
+    "storage_bucket": "managementeviros.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682329699660:android:cdca49dbd454c9db7dcbe9",
+        "android_client_info": {
+          "package_name": "management.environmental.com.environmental_management"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "682329699660-ggc94qnr0v3a3jjpglsvg7tiu500h30j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL6SoBAuFBQT_mFNwpSA9bepUMHyT8lw0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "682329699660-ggc94qnr0v3a3jjpglsvg7tiu500h30j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "682329699660-9s1c2l2itol7kdf904m50upp9u0nl7o3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "management.environmental.com.environmentalManagement"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

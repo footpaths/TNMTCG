@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>682329699660-9s1c2l2itol7kdf904m50upp9u0nl7o3.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.682329699660-9s1c2l2itol7kdf904m50upp9u0nl7o3</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD8sYr2rSV_ujNPyowPQe92yglgKe_Skeg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>682329699660</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>management.environmental.com.environmentalManagement</string>
+	<key>PROJECT_ID</key>
+	<string>managementeviros</string>
+	<key>STORAGE_BUCKET</key>
+	<string>managementeviros.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:682329699660:ios:76a8077ee5c02a257dcbe9</string>
+	<key>DATABASE_URL</key>
+	<string>https://managementeviros.firebaseio.com</string>
+</dict>
+</plist>
