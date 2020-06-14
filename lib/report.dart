@@ -53,7 +53,9 @@ class _reportPageState extends State<report> {
   double lat = 0.0;
   double long = 0.0;
   bool isReady = false;
+  GlobalKey<FormState> _key = new GlobalKey();
 
+  String name, email, mobile;
   @override
   void initState() {
     super.initState();
@@ -71,7 +73,7 @@ class _reportPageState extends State<report> {
       phonTemp= _phoneController.text;
       _image = File(pickedFile.path);
       images.add(_image);
-//      print('aaaaaa'+ _image.path);
+//      print('aaaaaa'+ _image.path)
       counter++;
 
     });
@@ -134,9 +136,9 @@ class _reportPageState extends State<report> {
 
     var _firebaseRef = FirebaseDatabase().reference().child('chats');
     _firebaseRef.push().set({
-      "name": _userController.text,
+      "name": name,
       "timestamp": formattedDate,
-      "phone": _phoneController.text,
+      "phone": mobile,
       "address": _locationMessage,
       "typeprocess": _dropdownValue,
       "statusProcess": _statusProcess,
@@ -145,6 +147,7 @@ class _reportPageState extends State<report> {
       "lat": lat,
       "long": long,
       "subAdminArea": _subAdminArea,
+      "imgPerson": "",
     }).then((val) {
      // print('aaaaaaaaa thanh cong');
       _showDialogSuccess();
@@ -223,9 +226,9 @@ class _reportPageState extends State<report> {
           content: new SingleChildScrollView(
             child: new ListBody(
               children: [
-                new Text('Họ tên: ' + _userController.text),
+                new Text('Họ tên: ' + name),
                 SizedBox(height: 10),
-                new Text('Số điện thoại: ' + _phoneController.text),
+                new Text('Số điện thoại: ' + mobile),
                 SizedBox(height: 10),
                 new Text('địa chỉ: ' + _locationMessage),
                 SizedBox(height: 10),
@@ -309,7 +312,178 @@ class _reportPageState extends State<report> {
 
     super.dispose();
   }
+  String validateName(String value) {
+    String patttern = r'(^[a-zA-Z ]*$)';
+    RegExp regExp = new RegExp(patttern);
+    if (value.length == 0) {
+      return "Vui lòng nhập họ tên";
+    }
+    return null;
+  }
 
+  String validateMobile(String value) {
+    if (value.length == 0) {
+      return "Vui lòng nhập số điện thoại";
+    }
+    return null;
+  }
+
+  Widget FormUI() {
+    return new Column(
+      children: <Widget>[
+        Container(
+          child: Text(
+            'Thông tin người phản ánh',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 24.0),
+          ),
+        ),
+        SizedBox(height: 30),
+        new TextFormField(
+          decoration: new InputDecoration(hintText: 'Họ tên',border: OutlineInputBorder(),),
+
+          validator: validateName,
+          onSaved: (String val) {
+            name = val;
+          },
+        ),
+        SizedBox(height: 20),
+        new TextFormField(
+            decoration: new InputDecoration(hintText: 'Số điện thoại',border: OutlineInputBorder(),),
+            keyboardType: TextInputType.phone,
+
+
+            validator: validateMobile,
+            onSaved: (String val) {
+              mobile = val;
+            }),
+
+        new SizedBox(height: 20.0),
+        Text(
+          "Chọn nội dung cần phản ánh",
+          style: TextStyle(color: Colors.black, fontSize: 16),
+        ),
+        Container(
+          width: 300.0,
+          margin: const EdgeInsets.only(left: 40, right: 40),
+          child: DropdownButton<String>(
+            style: new TextStyle(
+              color: Colors.red,
+              fontSize: 18.0,
+            ),
+            isExpanded: true,
+            value: _dropdownValue,
+
+            onChanged: (String newValue) {
+              setState(() {
+                _dropdownValue = newValue;
+              });
+            },
+            items: <String>[
+              'Lấn đất',
+              'Chiếm đất',
+              'Xả rác thải không đúng quy định',
+              'Ô nhiễm không khí',
+              'Ô nhiễm tiếng ồn',
+              'Khai thác cát trái phép'
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          margin: const EdgeInsets.only(left: 40, right: 40),
+          child: Text(
+            _locationMessage,
+            style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+
+          margin: const EdgeInsets.only(left: 40, right: 40),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(width: 10),
+              RaisedButton(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                    side: BorderSide(color: Colors.green)),
+                onPressed: () {
+                  FocusScope.of(context).requestFocus(textSecondFocusNode);
+                  //print('tétttttt'+ _phoneController.text);
+                  //captureImage(ImageSource.camera)
+//                                    loadAssets();
+                  // openCamera(context);
+                  FocusScope.of(context).unfocus();
+                  //  print('click');
+                  if(counter > 1){
+                    Toast.show("không vượt quá 2 hình", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+                  }else{
+
+                    getImage();
+                  }
+
+                },
+                color: Colors.green,
+                textColor: Colors.white,
+                child: Container(
+                  width: 150,
+
+                  child: Text("Chụp ảnh",textAlign: TextAlign.center,),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          height: 200,
+          child: buildGridView(),
+        )
+      ],
+    );
+  }
+  _sendToServer() {
+    if (_key.currentState.validate()) {
+      // No any error in validation
+      _key.currentState.save();
+
+      if(_locationMessage.contains("Đang dò địa chỉ, vui lòng chờ...")){
+        _validateLocation = true;
+        Toast.show("Vui lòng cung cấp quyền truy cập vị trí ", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+
+      }else{
+        _validateLocation = false;
+      }
+      if(!_validateLocation){
+        if(_image == null){
+          _validateImg = true;
+          Toast.show("Chụp ảnh xác thực phản ánh", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+        }else{
+          _validateImg = false;
+        }
+      }
+      if (!_validateLocation && !_validateImg) {
+
+
+        _showcontent();
+      }
+      print("Name $name");
+      print("Mobile $mobile");
+
+    } else {
+      // validation error
+      setState(() {
+        _validate = true;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     _phoneController.text = phonTemp;
@@ -327,19 +501,10 @@ class _reportPageState extends State<report> {
                       borderRadius: BorderRadius.circular(18.0),
                       side: BorderSide(color: Colors.red)),
                   onPressed: () {
-                    setState(() {
-                      _userController.text.isEmpty
-                          ? _validate = true
-                          : _validate = false;
-                      _phoneController.text.isEmpty
-                          ? _validatePhone = true
-                          : _validatePhone = false;
 
+                    _sendToServer();
 
-
-                    });
-
-                    if(_locationMessage.contains("Đang dò địa chỉ, vui lòng chờ...")){
+                   /* if(_locationMessage.contains("Đang dò địa chỉ, vui lòng chờ...")){
                       _validateLocation = true;
                       Toast.show("Vui lòng cung cấp quyền truy cập vị trí ", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
 
@@ -360,7 +525,7 @@ class _reportPageState extends State<report> {
 
 
                       _showcontent();
-                    }
+                    }*/
                     //_showcontent();
                   },
                   color: Colors.red,
@@ -386,7 +551,12 @@ class _reportPageState extends State<report> {
                   children: <Widget>[
                     SizedBox(height: 50),
                     Container(
-                      child: Column(
+                      child:new Form(
+                        key: _key,
+                        autovalidate: _validate,
+                        child: FormUI(),
+                      ),
+                     /* child: Column(
                         children: <Widget>[
                           Container(
                             child: Text(
@@ -507,7 +677,7 @@ class _reportPageState extends State<report> {
                             child: buildGridView(),
                           )
                         ],
-                      ),
+                      ),*/
                     ),isReady
                         ?
                      Column(

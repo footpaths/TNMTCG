@@ -13,8 +13,9 @@ class reportModel {
   String subAdminArea;
   bool statusProcess;
 
-  dynamic images = new List<String>();
 
+  dynamic images = new List<String>();
+  String imgPerson;
   reportModel(
       this.name,
       this.timestamp,
@@ -27,7 +28,9 @@ class reportModel {
       this.individualKey,
       this.subAdminArea,
       this.images,
-      this.personProcess);
+      this.personProcess,
+      this.imgPerson
+      );
 
   reportModel.fromSnapshot(DataSnapshot snapshot)
       : name = snapshot.value["name"],
@@ -41,7 +44,8 @@ class reportModel {
         individualKey = snapshot.key,
         subAdminArea = snapshot.value["subAdminArea"],
         images = snapshot.value["images"],
-        personProcess = snapshot.value["personProcess"];
+        personProcess = snapshot.value["personProcess"],
+        imgPerson  = snapshot.value["imgPerson"];
 
   toJson() {
     return {
@@ -57,6 +61,7 @@ class reportModel {
       "subAdminArea": subAdminArea,
       "images": images,
       "personProcess": personProcess,
+      "imgPerson": imgPerson,
     };
   }
 }

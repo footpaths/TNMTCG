@@ -14,6 +14,8 @@ import 'view/ChoosePageScreen.dart';
 import 'view/detailsScreen.dart';
 import 'view/fullImagesScreen.dart';
 import 'view/mapDetails.dart';
+import 'view/ConfirmImagesProcess.dart';
+
 //void main() => runApp(MyApp());
 var routes = <String, WidgetBuilder>{
   "/home": (BuildContext context) => MyHomePage(),
@@ -27,6 +29,7 @@ var routes = <String, WidgetBuilder>{
   "/fullScreen": (BuildContext context) => FullScreenImg(),
   "/changepass": (BuildContext context) => ChangePassScreen(),
   "/mapDetails": (BuildContext context) => mapDetails(),
+  "/ConfirmPerson": (BuildContext context) => ConfirmPerson(),
 };
 
 void main() => runApp(new MaterialApp(

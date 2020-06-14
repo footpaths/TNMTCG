@@ -124,6 +124,7 @@ class MyHomePageState extends State<MyHomePage>
           DATA[individualKey]['subAdminArea'],
           DATA[individualKey]['images'],
           DATA[individualKey]['personProcess'],
+          DATA[individualKey]['imgPerson'],
         );
 
         String subAdminArea = DATA[individualKey]['address'];
@@ -415,6 +416,7 @@ class MyHomePageState extends State<MyHomePage>
                               _listActive[index].individualKey,
                               _listActive[index].images,
                               _listActive[index].personProcess,
+                              _listActive[index].imgPerson,
                             );
                           },
                           onLongPress: () {
@@ -457,6 +459,7 @@ class MyHomePageState extends State<MyHomePage>
                               _list[index].individualKey,
                               _list[index].images,
                               _list[index].personProcess,
+                              _list[index].imgPerson,
                             );
                           },
                           onLongPress: () {
