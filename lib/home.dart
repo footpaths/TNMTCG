@@ -230,6 +230,19 @@ class MyHomePageState extends State<MyHomePage>
 
           }
         }
+        else if (personPro == "qldt@gmail.com") {
+
+          if(typeProcess.contains("Xây dựng trái phép") || typeProcess.contains("Lấn chiếm lòng lề đường")  ){
+
+            if (model.statusProcess) {
+              _list.add(model);
+            } else {
+              _listActive.add(model);
+            }
+          }
+
+
+        }
         else if (personPro == "admin@gmail.com") {
           if (model.statusProcess) {
             _list.add(model);

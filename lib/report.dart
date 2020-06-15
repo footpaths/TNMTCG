@@ -60,7 +60,7 @@ class _reportPageState extends State<report> {
   void initState() {
     super.initState();
 
-    _getCurrentLocation();
+
 
   }
 
@@ -385,7 +385,9 @@ class _reportPageState extends State<report> {
               'Xả rác thải không đúng quy định',
               'Ô nhiễm không khí',
               'Ô nhiễm tiếng ồn',
-              'Khai thác cát trái phép'
+              'Khai thác cát trái phép',
+              'Xây dựng trái phép',
+              'Lấn chiếm lòng lề đường',
             ].map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -487,6 +489,7 @@ class _reportPageState extends State<report> {
   @override
   Widget build(BuildContext context) {
     _phoneController.text = phonTemp;
+    _getCurrentLocation();
    // print('llllllllllllll'+phonTemp);
     return Scaffold(
       appBar: AppBar(
