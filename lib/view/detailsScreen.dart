@@ -68,36 +68,36 @@ class _detailsScreenState extends State<detailsScreen> {
     super.dispose();
   }
 
-  void _showDialogSuccess() {
-    showDialog(
-      context: context, barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return new AlertDialog(
-          title: Container(
-            alignment: Alignment.center,
-            child: new Text(
-              'Xác nhận!!!',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-          content: new SingleChildScrollView(
-              child: Container(
-            alignment: Alignment.center,
-            child: Text("xử lý thành công"),
-          )),
-          actions: [
-            new FlatButton(
-              child: new Text('Đồng ý'),
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+//  void _showDialogSuccess() {
+//    showDialog(
+//      context: context, barrierDismissible: false, // user must tap button!
+//      builder: (BuildContext context) {
+//        return new AlertDialog(
+//          title: Container(
+//            alignment: Alignment.center,
+//            child: new Text(
+//              'Xác nhận!!!',
+//              style: TextStyle(color: Colors.red),
+//            ),
+//          ),
+//          content: new SingleChildScrollView(
+//              child: Container(
+//            alignment: Alignment.center,
+//            child: Text("xử lý thành công"),
+//          )),
+//          actions: [
+//            new FlatButton(
+//              child: new Text('Đồng ý'),
+//              onPressed: () {
+//                Navigator.pop(context);
+//                Navigator.of(context).pop();
+//              },
+//            ),
+//          ],
+//        );
+//      },
+//    );
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +324,7 @@ class FunkyOverlayState extends State<FunkyOverlay>
     });
   }*/
 
-  void _showDialogSuccess() {
+ /* void _showDialogSuccess() {
     showDialog(
       context: context, barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
@@ -353,7 +353,7 @@ class FunkyOverlayState extends State<FunkyOverlay>
         );
       },
     );
-  }
+  }*/
 
   @override
   void initState() {

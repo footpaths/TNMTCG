@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:environmental_management/model/reportModel.dart';
 import 'package:environmental_management/utils/my_navigator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,10 +5,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lite_rolling_switch/lite_rolling_switch.dart';
-import 'package:tabbar/tabbar.dart';
-import 'package:flutter/material.dart';
-import 'package:toast/toast.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -259,7 +253,7 @@ class MyHomePageState extends State<MyHomePage>
     });
   }
 
-  Future<void> _showMyDialog(String individualKey, List images) async {
+  Future<void> _showMyDialog(String individualKey, List images, String imgPerson) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -293,6 +287,19 @@ class MyHomePageState extends State<MyHomePage>
                   } on Exception catch (_) {
 
                   }
+                }
+                try{
+                  String pas = imgPerson
+                      .replaceAll(
+                      new RegExp(
+                          r'https://firebasestorage.googleapis.com/v0/b/managementeviros.appspot.com/o/'),
+                      '')
+                      .split('?')[0];
+
+
+                  await storageReferance.child(pas).delete();
+                }on Exception catch (_){
+
                 }
                 dbRef.child(individualKey).remove();
 //
@@ -478,7 +485,7 @@ class MyHomePageState extends State<MyHomePage>
                           onLongPress: () {
                             if (personPro.contains("admin@gmail.com")) {
                               _showMyDialog(_list[index].individualKey,
-                                  _list[index].images);
+                                  _list[index].images,_list[index].imgPerson);
                             }
                           },
                         );

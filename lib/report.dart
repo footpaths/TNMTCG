@@ -98,11 +98,21 @@ class _reportPageState extends State<report> {
     return storageTaskSnapshot.ref.getDownloadURL();
   }
 
-  void uploadImages() {
+  Future<void> uploadImages() async {
 
     for (var imageFile in images) {
-//      print('link :'+ imageFile.toString());
-      postImage(imageFile).then((downloadUrl) {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+      StorageUploadTask uploadTask = reference.putFile(imageFile);
+      StorageTaskSnapshot downloadUrl = (await uploadTask.onComplete);
+
+      String url = (await downloadUrl.ref.getDownloadURL());
+      listUrls.add(url);
+
+      if (listUrls.length == images.length) {
+        updateRecord();
+      }
+    /*   postImage(imageFile).then((downloadUrl) {
         imageUrls.add(downloadUrl.toString());
         if (imageUrls.length == images.length) {
           String documnetID = DateTime.now().millisecondsSinceEpoch.toString();
@@ -110,8 +120,7 @@ class _reportPageState extends State<report> {
               .collection('images')
               .document(documnetID)
               .setData({'urls': imageUrls}).then((val) {
-//            print('succccccccccccccccccccccccccccccccccccccccccccc');
-            setState(() {
+             setState(() {
               images = [];
               imageUrls = [];
             });
@@ -119,7 +128,7 @@ class _reportPageState extends State<report> {
         }
       }).catchError((err) {
         print(err);
-      });
+      });*/
     }
   }
 
@@ -507,29 +516,6 @@ class _reportPageState extends State<report> {
 
                     _sendToServer();
 
-                   /* if(_locationMessage.contains("Đang dò địa chỉ, vui lòng chờ...")){
-                      _validateLocation = true;
-                      Toast.show("Vui lòng cung cấp quyền truy cập vị trí ", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
-
-                    }else{
-                      _validateLocation = false;
-                    }
-                    if(!_validateLocation){
-                      if(_image == null){
-                        _validateImg = true;
-                        Toast.show("Chụp ảnh xác thực phản ánh", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
-                      }else{
-                        _validateImg = false;
-                      }
-                    }
-
-
-                    if (!_validate && !_validatePhone && !_validateLocation && !_validateImg) {
-
-
-                      _showcontent();
-                    }*/
-                    //_showcontent();
                   },
                   color: Colors.red,
                   textColor: Colors.white,
@@ -559,128 +545,7 @@ class _reportPageState extends State<report> {
                         autovalidate: _validate,
                         child: FormUI(),
                       ),
-                     /* child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Text(
-                              'Thông tin người phản ánh',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 24.0),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            margin: const EdgeInsets.only(left: 40, right: 40),
-                            child: TextField(
-                              controller: _userController,
 
-                              //controller: _controller,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Họ tên',
-                                errorText:
-                                    _validate ? 'Vui lòng nhập họ tên' : null,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            margin: const EdgeInsets.only(left: 40, right: 40),
-                            child: TextField(
-                              focusNode: textSecondFocusNode,
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Số điện thoại',
-                                errorText: _validatePhone
-                                    ? 'Vui lòng nhập số điện thoại'
-                                    : null,
-                              ),
-                            ),
-                          ),
-
-
-                          SizedBox(height: 10),
-                          Text(
-                            "Chọn nội dung cần phản ánh",
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                          ),
-                          Container(
-                            width: 300.0,
-                            margin: const EdgeInsets.only(left: 40, right: 40),
-                            child: DropdownButton<String>(
-                              isExpanded: true,
-                              value: _dropdownValue,
-                              onChanged: (String newValue) {
-                                setState(() {
-                                  _dropdownValue = newValue;
-                                });
-                              },
-                              items: <String>[
-                                'Lấn đất',
-                                'Chiếm đất',
-                                'Xả rác thải không đúng quy định',
-                                'Ô nhiễm không khí',
-                                'Ô nhiễm tiếng ồn',
-                                'Khai thác cát trái phép'
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            margin: const EdgeInsets.only(left: 40, right: 40),
-                            child: Text(
-                              _locationMessage,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            margin: const EdgeInsets.only(left: 40, right: 40),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                SizedBox(width: 10),
-                                RaisedButton(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18.0),
-                                      side: BorderSide(color: Colors.green)),
-                                  onPressed: () {
-                                    FocusScope.of(context).requestFocus(textSecondFocusNode);
-                                    //print('tétttttt'+ _phoneController.text);
-                                    //captureImage(ImageSource.camera)
-//                                    loadAssets();
-                                   // openCamera(context);
-                                    FocusScope.of(context).unfocus();
-                                  //  print('click');
-                                    if(counter > 1){
-                                      Toast.show("không vượt quá 2 hình", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
-                                    }else{
-
-                                      getImage();
-                                    }
-
-                                  },
-                                  color: Colors.green,
-                                  textColor: Colors.white,
-                                  child: Text("Chụp ảnh"),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            height: 200,
-                            child: buildGridView(),
-                          )
-                        ],
-                      ),*/
                     ),isReady
                         ?
                      Column(
