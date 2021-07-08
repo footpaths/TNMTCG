@@ -1,20 +1,22 @@
- import 'dart:io';
+ import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:environmental_management/Constants/icon_image.dart';
 import 'package:environmental_management/utils/my_navigator.dart';
+import 'package:environmental_management/view/PdfViewPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
-
+// import 'package:flutter_pdfview/flutter_pdfview.dart';
  import 'package:path_provider/path_provider.dart';
- import 'package:flutter_pdfview/flutter_pdfview.dart';
- import 'package:http/http.dart' as http;
+ import 'package:pdf_render/pdf_render_widgets2.dart';
 
-import 'PdfViewPage.dart';
+ import 'package:pdf_render/pdf_render.dart';
+ import 'package:flutter_pdfview/flutter_pdfview.dart';
+
+ import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 
 
 
@@ -26,8 +28,9 @@ class ChoosePageScreen extends StatefulWidget {
 }
 
 class ChoosePageScreenState extends State<ChoosePageScreen> {
-  String assetPDFPath = "";
-  String urlPDFPath = "";
+
+  String pathPDF = "";
+  // String urlPDFPath = "";
   @override
   Future<void> initState()   {
     super.initState();
@@ -47,26 +50,37 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
         }
       });
     });
-    getFileFromAsset("assets/DCQH.pdf").then((f) {
+
+    fromAsset('assets/DCQH.pdf', 'DCQH.pdf').then((f) {
       setState(() {
-        assetPDFPath = f.path;
-        print(assetPDFPath);
+        pathPDF = f.path;
       });
     });
 
-    getFileFromUrl("http://www.pdf995.com/samples/pdf.pdf").then((f) {
-      setState(() {
-        urlPDFPath = f.path;
-        print(urlPDFPath);
-      });
-    });
+  }
+  Future<File> fromAsset(String asset, String filename) async {
+    // To open from assets, you can copy them to the app storage folder, and the access them "locally"
+    Completer<File> completer = Completer();
+
+    try {
+      var dir = await getApplicationDocumentsDirectory();
+      File file = File("${dir.path}/$filename");
+      var data = await rootBundle.load(asset);
+      var bytes = data.buffer.asUint8List();
+      await file.writeAsBytes(bytes, flush: true);
+      completer.complete(file);
+    } catch (e) {
+      throw Exception('Error parsing asset file!');
+    }
+
+    return completer.future;
   }
   Future<File> getFileFromAsset(String asset) async {
     try {
       var data = await rootBundle.load(asset);
       var bytes = data.buffer.asUint8List();
       var dir = await getApplicationDocumentsDirectory();
-      File file = File("${dir.path}/mypdf.pdf");
+      File file = File("${dir.path}/sample.pdf");
 
       File assetFile = await file.writeAsBytes(bytes);
       return assetFile;
@@ -75,22 +89,12 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
     }
   }
 
-  Future<File> getFileFromUrl(String url) async {
-    try {
-      var data = await http.get(url);
-      var bytes = data.bodyBytes;
-      var dir = await getApplicationDocumentsDirectory();
-      File file = File("${dir.path}/mypdfonline.pdf");
 
-      File urlFile = await file.writeAsBytes(bytes);
-      return urlFile;
-    } catch (e) {
-      throw Exception("Error opening url file");
-    }
-  }
   @override
   Widget build(BuildContext context) {
+    FlutterStatusbarcolor.setStatusBarColor(Colors.green);
     return Scaffold(
+
       body: SafeArea(
 
         child: Column(
@@ -147,7 +151,7 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
                               },
                               color: Colors.green,
                               textColor: Colors.white,
-                              child: Text("PHẢN ÁNH VỀ ĐẤT ĐAI & MÔI TRƯỜNG",textAlign: TextAlign.center,),
+                              child: Text("PHẢN ÁNH VỀ ĐẤT ĐAI, MÔI TRƯỜNG & TIẾNG ỒN",textAlign: TextAlign.center,),
                             ) ,
                           ),
                           SizedBox(height: 30),
@@ -163,17 +167,23 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
                               onPressed: () {
                                // MyNavigator.goToPDFT(context);//
                                 //_showcontent();
-                                if (assetPDFPath != null) {
+
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PdfViewPage(path: assetPDFPath)));
-                                }
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PdfViewPage( path: pathPDF)
+                                    ),
+                                  );
+                                  // Navigator.push(
+                                  //     context,
+                                  //     MaterialPageRoute(
+                                  //         builder: (context) =>
+                                  //             PdfViewPage(path: pathPDF)));
+
                               },
                               color: Colors.brown,
                               textColor: Colors.white,
-                              child: Text("XEM THÔNG TIN BẢN ĐỒ QUY HOẠCH",textAlign: TextAlign.center,),
+                              child: Text("CÔNG BỐ BẢN ĐỒ QUY HOẠCH",textAlign: TextAlign.center,),
                             ) ,
                           ),
                           SizedBox(height: 10),
@@ -224,86 +234,47 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
   }
 }
 
-/*
- class PdfViewPage extends StatefulWidget {
-   final String path;
+ // class PDFScreen extends StatefulWidget {
+ //
+ //
+ //   PDFScreen({Key key}) : super(key: key);
+ //
+ //   _PDFScreenState createState() => _PDFScreenState();
+ // }
+ //
+ // class _PDFScreenState extends State<PDFScreen>  {
+ //
+ //   final controller = PdfViewerController();
+ //
+ //   @override
+ //   void dispose() {
+ //     controller.dispose();
+ //     super.dispose();
+ //   }
+ //
+ //   @override
+ //   Widget build(BuildContext context) {
+ //     return Scaffold(
+ //       appBar: AppBar(
+ //         title: Text("Document"),
+ //         actions: <Widget>[
+ //           IconButton(
+ //             icon: Icon(Icons.share),
+ //             onPressed: () {},
+ //           ),
+ //         ],
+ //       ),
+ //       body: Stack(
+ //         children: <Widget>[
+ //           PdfViewer(
+ //             assetName: 'assets/DCQH.pdf', padding: 16,
+ //             minScale: 1.0,
+ //             viewerController: controller,
+ //           )
+ //         ],
+ //       ),
+ //
+ //     );
+ //   }
+ // }
 
-   const PdfViewPage({Key key, this.path}) : super(key: key);
-   @override
-   _PdfViewPageState createState() => _PdfViewPageState();
- }
-
- class _PdfViewPageState extends State<PdfViewPage> {
-   int _totalPages = 0;
-   int _currentPage = 0;
-   bool pdfReady = false;
-   PDFViewController _pdfViewController;
-
-   @override
-   Widget build(BuildContext context) {
-     return Scaffold(
-       appBar: AppBar(
-         title: Text("My Document"),
-       ),
-       body: Stack(
-         children: <Widget>[
-           PDFView(
-             filePath: widget.path,
-             autoSpacing: true,
-             enableSwipe: true,
-             pageSnap: true,
-             swipeHorizontal: true,
-             nightMode: false,
-             fitEachPage: false,
-             onError: (e) {
-               print(e);
-             },
-             onRender: (_pages) {
-               setState(() {
-                 _totalPages = _pages;
-                 pdfReady = true;
-               });
-             },
-             onViewCreated: (PDFViewController vc) {
-               _pdfViewController = vc;
-             },
-             onPageChanged: (int page, int total) {
-               setState(() {});
-             },
-             onPageError: (page, e) {},
-           ),
-           !pdfReady
-               ? Center(
-             child: CircularProgressIndicator(),
-           )
-               : Offstage()
-         ],
-       ),
-       floatingActionButton: Row(
-         mainAxisAlignment: MainAxisAlignment.end,
-         children: <Widget>[
-           _currentPage > 0
-               ? FloatingActionButton.extended(
-             backgroundColor: Colors.red,
-             label: Text("Go to ${_currentPage - 1}"),
-             onPressed: () {
-               _currentPage -= 1;
-               _pdfViewController.setPage(_currentPage);
-             },
-           )
-               : Offstage(),
-           _currentPage+1 < _totalPages
-               ? FloatingActionButton.extended(
-             backgroundColor: Colors.green,
-             label: Text("Go to ${_currentPage + 1}"),
-             onPressed: () {
-               _currentPage += 1;
-               _pdfViewController.setPage(_currentPage);
-             },
-           )
-               : Offstage(),
-         ],
-       ),
-     );
-   }
- }*/

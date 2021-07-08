@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file/local.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,20 +11,28 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:toast/toast.dart';
+import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:progress_dialog/progress_dialog.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 
 class report extends StatefulWidget {
   final GlobalKey<ScaffoldState> globalKey;
 
-  const report({Key key, this.globalKey}) : super(key: key);
-
-  @override
+  const report({Key key, this.globalKey }) : super(key: key);
+   @override
   _reportPageState createState() => _reportPageState();
 }
 
 class _reportPageState extends State<report> {
   String _locationMessage = "Đang dò địa chỉ, vui lòng chờ...";
   String _subAdminArea = "";
-    String phonTemp = "";
+  // LocalFileSystem localFileSystem;
+  final LocalFileSystem localFileSystem = new LocalFileSystem();
+
+
+  String phonTemp = "";
 //  String imagesAttach = "và không có ảnh được chọn";
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -42,6 +49,13 @@ class _reportPageState extends State<report> {
   bool _validateLocation = false;
   bool _validateImg = false;
   bool _statusProcess = false;
+  bool visibilityLayoutCamera = true;
+  bool visibilityLayoutRecord = false;
+  bool visibilityLayoutTextRecord = false;
+  bool visibilityLayoutTextRecordStatus = false;
+  bool visibilityButtonDone= false;
+  bool visibilityButtonPlay= false;
+  ProgressDialog pr;
 
   String _dropdownValue = 'Lấn đất';
   //dynamic _image;
@@ -54,12 +68,17 @@ class _reportPageState extends State<report> {
   double long = 0.0;
   bool isReady = false;
   GlobalKey<FormState> _key = new GlobalKey();
-
+  FlutterAudioRecorder _recorder;
+  Recording _current;
+  RecordingStatus _currentStatus = RecordingStatus.Unset;
   String name, email, mobile;
+  String filePathsRecord= "";
+  String stopLabel = "Ghi âm";
+  AudioPlayer audioPlayer = AudioPlayer();
   @override
   void initState() {
     super.initState();
-
+    _init();
 
 
   }
@@ -73,6 +92,7 @@ class _reportPageState extends State<report> {
       phonTemp= _phoneController.text;
       _image = File(pickedFile.path);
       images.add(_image);
+
 //      print('aaaaaa'+ _image.path)
       counter++;
 
@@ -100,38 +120,77 @@ class _reportPageState extends State<report> {
 
   Future<void> uploadImages() async {
 
-    for (var imageFile in images) {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-      StorageUploadTask uploadTask = reference.putFile(imageFile);
-      StorageTaskSnapshot downloadUrl = (await uploadTask.onComplete);
+    if(_dropdownValue == "Ô nhiễm tiếng ồn"){
 
-      String url = (await downloadUrl.ref.getDownloadURL());
-      listUrls.add(url);
+      if(_current !=null){
+        pr.show();
+        uploadToStorage();
+      }else{
 
-      if (listUrls.length == images.length) {
-        updateRecord();
+        Toast.show("Vui lòng ghi âm tiếng ồn", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
       }
-    /*   postImage(imageFile).then((downloadUrl) {
-        imageUrls.add(downloadUrl.toString());
-        if (imageUrls.length == images.length) {
-          String documnetID = DateTime.now().millisecondsSinceEpoch.toString();
-          Firestore.instance
-              .collection('images')
-              .document(documnetID)
-              .setData({'urls': imageUrls}).then((val) {
-             setState(() {
-              images = [];
-              imageUrls = [];
-            });
-          });
-        }
-      }).catchError((err) {
-        print(err);
-      });*/
-    }
-  }
 
+    }else{
+      pr.show();
+      for (var imageFile in images) {
+        String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+        StorageUploadTask uploadTask = reference.putFile(imageFile);
+        StorageTaskSnapshot downloadUrl = (await uploadTask.onComplete);
+
+        String url = (await downloadUrl.ref.getDownloadURL());
+        listUrls.add(url);
+
+        if (listUrls.length == images.length) {
+
+          updateRecord();
+        }
+
+      }
+    }
+
+  }
+  Future uploadToStorage() async {
+    try {
+// _recorder.recording.path;
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      // File file =  new File(_current.path);
+      File file =  new File(_current.path);
+       final StorageReference storageRef = FirebaseStorage.instance.ref().child(fileName);
+       final StorageUploadTask uploadTask = storageRef.putFile(file, StorageMetadata(contentType: 'audio/wav'));
+      final StorageTaskSnapshot downloadUrl = (await uploadTask.onComplete);
+      final String url = (await downloadUrl.ref.getDownloadURL());
+      print('$url');
+      if(url.isNotEmpty){
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+        var _firebaseRef = FirebaseDatabase().reference().child('chats');
+        _firebaseRef.push().set({
+          "name": name,
+          "timestamp": formattedDate,
+          "phone": mobile,
+          "address": _locationMessage,
+          "typeprocess": _dropdownValue,
+          "statusProcess": _statusProcess,
+          "images": "nodata",
+          "personProcess": "",
+          "lat": lat,
+          "long": long,
+          "subAdminArea": _subAdminArea,
+          "imgPerson": "",
+          "sound": url,
+        }).then((val) {
+          // print('aaaaaaaaa thanh cong');
+          pr.hide();
+          _showDialogSuccess();
+//      Navigator.pop(context);
+        });
+      }
+    } catch (error) {
+    print(error);
+    }
+
+  }
   void updateRecord() {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
@@ -143,34 +202,44 @@ class _reportPageState extends State<report> {
       listUrls.add("nodata");
     }
 
-    var _firebaseRef = FirebaseDatabase().reference().child('chats');
-    _firebaseRef.push().set({
-      "name": name,
-      "timestamp": formattedDate,
-      "phone": mobile,
-      "address": _locationMessage,
-      "typeprocess": _dropdownValue,
-      "statusProcess": _statusProcess,
-      "images": listUrls,
-      "personProcess": "",
-      "lat": lat,
-      "long": long,
-      "subAdminArea": _subAdminArea,
-      "imgPerson": "",
-    }).then((val) {
-     // print('aaaaaaaaa thanh cong');
-      _showDialogSuccess();
+
+    // if(_dropdownValue == "Ô nhiễm tiếng ồn"){
+    //   if(_current.path !=null){
+    //       uploadToStorage();
+    //   }
+    //
+    // }else{
+      var _firebaseRef = FirebaseDatabase().reference().child('chats');
+      _firebaseRef.push().set({
+        "name": name,
+        "timestamp": formattedDate,
+        "phone": mobile,
+        "address": _locationMessage,
+        "typeprocess": _dropdownValue,
+        "statusProcess": _statusProcess,
+        "images": listUrls,
+        "personProcess": "",
+        "lat": lat,
+        "long": long,
+        "subAdminArea": _subAdminArea,
+        "imgPerson": "",
+        "sound": "",
+      }).then((val) {
+        // print('aaaaaaaaa thanh cong');
+        pr.hide();
+        _showDialogSuccess();
 //      Navigator.pop(context);
-    });
+      });
+
+
+
 
   }
 
   void createRecord() {
-//    if (images.length > 0) {
+
       uploadImages();
-//    } else {
-//      updateRecord();
-//    }
+
   }
 
   void _showDialogSuccess() {
@@ -256,11 +325,9 @@ class _reportPageState extends State<report> {
             new FlatButton(
               child: new Text('Đồng ý'),
               onPressed: () {
-                setState(() {
-                  isReady = true;
-                });
-                createRecord();
                 Navigator.of(context).pop();
+                createRecord();
+
 
               },
             ),
@@ -281,24 +348,28 @@ class _reportPageState extends State<report> {
   }
 
   void _getCurrentLocation() async {
-    final Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-   /// debugPrint('location: ${position.latitude}');
-    final coordinates = new Coordinates(position.latitude, position.longitude);
-    var addresses =
-        await Geocoder.local.findAddressesFromCoordinates(coordinates);
-    var first = addresses.first;
-    lat = position.latitude;
-    long = position.longitude;
-    if(mounted){
-      setState(() {
+    try {
+      final Position position = await Geolocator()
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      /// debugPrint('location: ${position.latitude}');
+      final coordinates = new Coordinates(position.latitude, position.longitude);
+      var addresses =
+      await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      var first = addresses.first;
+      lat = position.latitude;
+      long = position.longitude;
+      if(mounted){
+        setState(() {
 
-        _locationMessage = "${first.addressLine}";
-        _subAdminArea = first.subAdminArea;
+          _locationMessage = "${first.addressLine}";
+          _subAdminArea = first.subAdminArea;
+
+        });
+      }
+
+    } on Exception catch (_) {
 
 
-
-      });
     }
 
   }
@@ -306,7 +377,7 @@ class _reportPageState extends State<report> {
     final scaffold = Scaffold.of(context);
     scaffold.showSnackBar(
       SnackBar(
-        content: const Text('Added to favorite'),
+        content: const Text('Vui lòng vào cài đặt để kích hoạt quyền truy cập vị trí'),
         action: SnackBarAction(
             label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
       ),
@@ -320,6 +391,7 @@ class _reportPageState extends State<report> {
     _userController.dispose();
 
     super.dispose();
+
   }
   String validateName(String value) {
     String patttern = r'(^[a-zA-Z ]*$)';
@@ -386,6 +458,20 @@ class _reportPageState extends State<report> {
             onChanged: (String newValue) {
               setState(() {
                 _dropdownValue = newValue;
+                if(newValue.contains("Ô nhiễm tiếng ồn")){
+                  visibilityLayoutRecord = true;
+                  visibilityLayoutCamera = false;
+                  visibilityLayoutTextRecord = true;
+                  images.clear();
+                }else{
+                  visibilityLayoutRecord = false;
+                  visibilityLayoutCamera = true;
+                  visibilityLayoutTextRecord = false;
+                  visibilityLayoutTextRecordStatus = false;
+                  stopLabel = "Ghi âm";
+                  _stop();
+
+                }
               });
             },
             items: <String>[
@@ -395,7 +481,7 @@ class _reportPageState extends State<report> {
               'Ô nhiễm không khí',
               'Ô nhiễm tiếng ồn',
               'Khai thác cát trái phép',
-              'Xây dựng trái phép',
+             /* 'Xây dựng trái phép',*/
               'Lấn chiếm lòng lề đường',
             ].map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
@@ -414,51 +500,311 @@ class _reportPageState extends State<report> {
           ),
         ),
         SizedBox(height: 10),
-        Container(
+        Visibility(
+          child: Container(
 
-          margin: const EdgeInsets.only(left: 40, right: 40),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(width: 10),
-              RaisedButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.green)),
-                onPressed: () {
-                  FocusScope.of(context).requestFocus(textSecondFocusNode);
-                  //print('tétttttt'+ _phoneController.text);
-                  //captureImage(ImageSource.camera)
+            margin: const EdgeInsets.only(left: 40, right: 40),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                SizedBox(width: 10),
+                RaisedButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.green)),
+                  onPressed: () {
+                    FocusScope.of(context).requestFocus(textSecondFocusNode);
+                    //print('tétttttt'+ _phoneController.text);
+                    //captureImage(ImageSource.camera)
 //                                    loadAssets();
-                  // openCamera(context);
-                  FocusScope.of(context).unfocus();
-                  //  print('click');
-                  if(counter > 1){
-                    Toast.show("không vượt quá 2 hình", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
-                  }else{
+//                     openCamera(context);
+                    FocusScope.of(context).unfocus();
+                    //  print('click');
+                    if(counter > 1){
+                      Toast.show("không vượt quá 2 hình", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+                    }else{
 
-                    getImage();
-                  }
+                      getImage();
+                    }
 
-                },
-                color: Colors.green,
-                textColor: Colors.white,
-                child: Container(
-                  width: 150,
+                  },
+                  color: Colors.green,
+                  textColor: Colors.white,
+                  child: Container(
+                    width: 150,
 
-                  child: Text("Chụp ảnh",textAlign: TextAlign.center,),
+                    child: Text("Chụp ảnh",textAlign: TextAlign.center,),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          visible: visibilityLayoutCamera,
         ),
+
         SizedBox(height: 10),
+        Visibility(
+          child: Container(
+            alignment: Alignment.center,
+             child: Row(
+               mainAxisAlignment: MainAxisAlignment.center,
+               children: <Widget>[
+                 RaisedButton(
+                   shape: RoundedRectangleBorder(
+                       borderRadius: BorderRadius.circular(18.0),
+                       side: BorderSide(color: Colors.green)),
+                   onPressed: () {
+                     if(stopLabel.contains("Dừng")){
+                       // visibilityLayoutTextRecordStatus =  false;
+                       // visibilityLayoutTextRecord =  true;
+                       setState(() {
+                         visibilityButtonDone = true;
+                         visibilityLayoutTextRecord = false;
+                         visibilityLayoutTextRecordStatus = true;
+                       });
+                       _currentStatus != RecordingStatus.Unset ? _stop() : null;
+                       stopLabel = "Khởi tạo";
+                     }else if(stopLabel.contains("Khởi tạo")){
+                        _init();
+                        stopLabel = "Ghi âm";
+                        visibilityButtonDone = false;
+                        visibilityLayoutTextRecord = true;
+                        visibilityLayoutTextRecordStatus = false;
+                     }else{
+                       _start();
+                       stopLabel = "Dừng";
+                       setState(() {
+                         visibilityButtonDone = false;
+                         visibilityLayoutTextRecord = true;
+                         visibilityLayoutTextRecordStatus = false;
+                       });
+                     }
+                   },
+                   color: Colors.green,
+                   textColor: Colors.white,
+                   child: Container(
+                     width: 70,
+
+                     child: Text(stopLabel,textAlign: TextAlign.center,),
+                   ),
+                 ),
+                 // Visibility(child: Text("Play",textAlign: TextAlign.center,
+                 //
+                 // ),visible: false,)
+                 SizedBox(width: 10),
+                 Visibility(child:  RaisedButton(
+
+                   shape: RoundedRectangleBorder(
+                       borderRadius: BorderRadius.circular(18.0),
+                       side: BorderSide(color: Colors.green)),
+
+                   onPressed: () {
+
+                     setState(() {
+
+                       if(_current !=null){
+                         onPlayAudio();
+                         // visibilityLayoutTextRecordStatus = true;
+                         // visibilityLayoutTextRecord = false;
+                       }
+                       // ignore: unnecessary_statements
+
+                       // }else{
+                       //
+                       //   onPlayAudio();
+                       // }
+                       // visibilityButtonDone = false;
+                       // visibilityButtonPlay = true;
+                     });
+
+                   },
+                   color: Colors.green,
+                   textColor: Colors.white,
+                   child: Container(
+
+                     width: 70,
+
+                     child: Text("Play",textAlign: TextAlign.center,),
+                   ),
+                 ),
+
+                   visible: visibilityButtonDone,
+
+                 )
+               ],
+             )
+
+          ),
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          visible: visibilityLayoutRecord,
+        ),
+        Visibility(child:  Text(
+            "Thời gian ghi âm : ${_current?.duration.toString()}"),
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          visible: visibilityLayoutTextRecord,
+        ),
+        Visibility(child:  Text(
+            "Bạn đã ghi âm thành công",style: TextStyle(color: Colors.red)),
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          visible: visibilityLayoutTextRecordStatus,
+        ),
         Container(
           height: 200,
           child: buildGridView(),
         )
       ],
     );
+  }
+  _stop() async {
+    if(_current != null){
+      var result = await _recorder.stop();
+      print("Stop recording: ${result.path}");
+      print("Stop recording: ${result.duration}");
+      File file =  localFileSystem.file(result.path);
+      print("File length: ${await file.length()}");
+      setState(() {
+        _current = result;
+        _currentStatus = _current.status;
+      });
+      // _init();
+    }
+
+  }
+
+  // void onPlayAudio() async {
+  //
+  //   AudioPlayer audioPlayer = AudioPlayer();
+  //   audioPlayer.stop();
+  //   await audioPlayer.play(filePathsRecord, isLocal: true);
+  // }
+  void onPlayAudio() async {
+
+    AudioPlayer audioPlayer = AudioPlayer();
+    audioPlayer.stop();
+    await audioPlayer.play(_current.path, isLocal: true);
+  }
+  _init() async {
+    try {
+      if (await FlutterAudioRecorder.hasPermissions) {
+        String customPath = '/flutter_audio_recorder_';
+
+         var appDocDirectory = await getExternalStorageDirectory();
+
+
+        // can add extension like ".mp4" ".wav" ".m4a" ".aac"
+        customPath = appDocDirectory.path +
+            customPath +
+            DateTime.now().millisecondsSinceEpoch.toString();
+
+        // .wav <---> AudioFormat.WAV
+        // .mp4 .m4a .aac <---> AudioFormat.AAC
+        // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
+        _recorder =
+            FlutterAudioRecorder(customPath, audioFormat: AudioFormat.WAV);
+
+        await _recorder.initialized;
+        // after initialization
+        var current = await _recorder.current(channel: 0);
+        print(current);
+        // should be "Initialized", if all working fine
+        setState(() {
+          _current = current;
+          _currentStatus = current.status;
+          print(_currentStatus);
+        });
+      } else {
+        Scaffold.of(context).showSnackBar(
+            new SnackBar(content: new Text("You must accept permissions")));
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+ /* _start() async {
+    try {
+      if (await FlutterAudioRecorder.hasPermissions) {
+        String customPath = '/flutter_audio_recorder_';
+
+
+
+        var appDocDirectory = await getExternalStorageDirectory();
+
+
+        // can add extension like ".mp4" ".wav" ".m4a" ".aac"
+        customPath = appDocDirectory.path +
+            customPath +
+            DateTime.now().millisecondsSinceEpoch.toString();
+
+        // .wav <---> AudioFormat.WAV
+        // .mp4 .m4a .aac <---> AudioFormat.AAC
+        // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
+        _recorder =
+            FlutterAudioRecorder(customPath, audioFormat: AudioFormat.WAV);
+
+        await _recorder.initialized;
+
+        await _recorder.start();
+        var recording = await _recorder.current(channel: 0);
+        setState(() {
+          _current = recording;
+        });
+
+        const tick = const Duration(milliseconds: 50);
+        new Timer.periodic(tick, (Timer t) async {
+          if (_currentStatus == RecordingStatus.Stopped) {
+            t.cancel();
+          }
+          filePathsRecord =  _current.path;
+
+          var current = await _recorder.current(channel: 0);
+          // print(current.status);
+          setState(() {
+            _current = current;
+            _currentStatus = _current.status;
+          });
+        });
+      }else{
+        Scaffold.of(context).showSnackBar(
+            new SnackBar(content: new Text("Bạn phải cấp quyền ghi âm")));
+      }
+
+    } catch (e) {
+      print(e);
+    }
+  }*/
+  _start() async {
+    try {
+      await _recorder.start();
+      var recording = await _recorder.current(channel: 0);
+      setState(() {
+        _current = recording;
+      });
+
+      const tick = const Duration(milliseconds: 50);
+      new Timer.periodic(tick, (Timer t) async {
+        if (_currentStatus == RecordingStatus.Stopped) {
+          t.cancel();
+        }
+
+        var current = await _recorder.current(channel: 0);
+        // print(current.status);
+        setState(() {
+          _current = current;
+          _currentStatus = _current.status;
+        });
+      });
+    } catch (e) {
+      print(e);
+    }
   }
   _sendToServer() {
     if (_key.currentState.validate()) {
@@ -475,16 +821,28 @@ class _reportPageState extends State<report> {
       if(!_validateLocation){
         if(_image == null){
           _validateImg = true;
-          Toast.show("Chụp ảnh xác thực phản ánh", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+          if(_dropdownValue == "Ô nhiễm tiếng ồn"){
+
+          }else{
+            Toast.show("Chụp ảnh xác thực phản ánh", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+
+          }
         }else{
           _validateImg = false;
         }
       }
-      if (!_validateLocation && !_validateImg) {
+      if(_dropdownValue == "Ô nhiễm tiếng ồn"){
+        if(!_validateLocation){
+          _showcontent();
+        }
+      }else{
+        if (!_validateLocation && !_validateImg) {
 
 
-        _showcontent();
+          _showcontent();
+        }
       }
+
       print("Name $name");
       print("Mobile $mobile");
 
@@ -498,7 +856,38 @@ class _reportPageState extends State<report> {
   @override
   Widget build(BuildContext context) {
     _phoneController.text = phonTemp;
-    _getCurrentLocation();
+    // Custom body test
+    pr = ProgressDialog(
+      context,
+      type: ProgressDialogType.Download,
+
+      isDismissible: false,
+//      customBody: LinearProgressIndicator(
+//        valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+//        backgroundColor: Colors.white,
+//      ),
+    );
+
+    pr.style(
+//      message: 'Downloading file...',
+      message:
+      'Vui lòng chờ trong giây lát...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+
+      progressWidgetAlignment: Alignment.center,
+
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+    if(_locationMessage.contains("Đang dò địa chỉ, vui lòng chờ...")){
+      _getCurrentLocation();
+    }
+
    // print('llllllllllllll'+phonTemp);
     return Scaffold(
       appBar: AppBar(
@@ -514,6 +903,7 @@ class _reportPageState extends State<report> {
                       side: BorderSide(color: Colors.red)),
                   onPressed: () {
 
+                    _stop();
                     _sendToServer();
 
                   },
@@ -546,26 +936,29 @@ class _reportPageState extends State<report> {
                         child: FormUI(),
                       ),
 
-                    ),isReady
-                        ?
-                     Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          CircularProgressIndicator(),
-                          Padding(
-                            padding: EdgeInsets.only(top: 20.0),
-                          ),
-                          Text(
-                            "Vui lòng chờ trong giây lát..",
-                            softWrap: true,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0,
-                                color: Colors.black),
-                          )
-                        ],
-                      ) :  Offstage()
+                    )
+                    // ,isReady
+                    //     ? Center(
+                    //   child: CircularProgressIndicator()
+                    // ):  Offstage()
+                     // Column(
+                     //    mainAxisAlignment: MainAxisAlignment.center,
+                     //    children: <Widget>[
+                     //      CircularProgressIndicator(),
+                     //      Padding(
+                     //        padding: EdgeInsets.only(top: 20.0),
+                     //      ),
+                     //      Text(
+                     //        "Vui lòng chờ trong giây lát..",
+                     //        softWrap: true,
+                     //        textAlign: TextAlign.center,
+                     //        style: TextStyle(
+                     //            fontWeight: FontWeight.bold,
+                     //            fontSize: 18.0,
+                     //            color: Colors.black),
+                     //      )
+                     //    ],
+                     //  ) :  Offstage()
                   ],
                 ),
               ),

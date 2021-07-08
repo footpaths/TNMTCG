@@ -30,8 +30,12 @@ class LoginScreenState extends State<LoginScreen> {
         else {
           //signed in
           print('roi');
+          Navigator.pushNamed(context, '/home').then((_) {
+            // This block runs when you have returned back to the 1st Page from 2nd.
+            Navigator.of(context).pop();
+          });
 
-          MyNavigator.goToHome(context);
+         // MyNavigator.goToHome(context);
 //          Navigator.of(context).pushReplacementNamed('/login');
 //          Navigator.of(context).push(new MaterialPageRoute(builder: (_) => new MyHomePage()));
 

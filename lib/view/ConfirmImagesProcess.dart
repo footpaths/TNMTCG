@@ -4,8 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:http/http.dart' as http;
+ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:toast/toast.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -13,6 +12,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dialogError.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:progress_dialog/progress_dialog.dart';
+
 class ConfirmPerson extends StatefulWidget {
   @override
   _ConfirmPageState createState() => _ConfirmPageState();
@@ -25,7 +26,7 @@ class _ConfirmPageState extends State<ConfirmPerson> {
   String individualKey;
   String personPro;
   final FirebaseDatabase _database = FirebaseDatabase.instance;
-
+  ProgressDialog pr;
   Future getImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.camera, maxHeight: 800.0, maxWidth: 800.0);
@@ -44,6 +45,33 @@ class _ConfirmPageState extends State<ConfirmPerson> {
   @override
   Widget build(BuildContext context) {
     final Map arguments = ModalRoute.of(context).settings.arguments as Map;
+    pr = ProgressDialog(
+      context,
+      type: ProgressDialogType.Normal,
+
+      isDismissible: false,
+//      customBody: LinearProgressIndicator(
+//        valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+//        backgroundColor: Colors.white,
+//      ),
+    );
+
+    pr.style(
+//      message: 'Downloading file...',
+      message:
+      'Vui lòng chờ trong giây lát...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+
+      progressWidgetAlignment: Alignment.center,
+
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
 
     if (arguments != null) {
       this.individualKey = arguments['individualKey'];
@@ -102,7 +130,7 @@ class _ConfirmPageState extends State<ConfirmPerson> {
                     } else {
                       showDialog(
                         context: context,
-                        builder: (_) => FunkyOverlay(_database, individualKey, personPro,_image),
+                        builder: (_) => FunkyOverlay(_database, individualKey, personPro,_image, pr),
                       );
                       /*showDialog(
                           context: context,
@@ -127,8 +155,8 @@ class FunkyOverlay extends StatefulWidget {
   String individualKey;
   String personPro;
   File _image;
-
-  FunkyOverlay(this.database, this.individualKey, this.personPro,this._image);
+  ProgressDialog pr;
+  FunkyOverlay(this.database, this.individualKey, this.personPro,this._image,this.pr);
 
   @override
   State<StatefulWidget> createState() => FunkyOverlayState();
@@ -183,6 +211,8 @@ class FunkyOverlayState extends State<FunkyOverlay>
   }
 
   void uploadImages() {
+
+
 
 
 //      print('link :'+ imageFile.toString());

@@ -1,10 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:environmental_management/Constants/icon_image.dart';
 import 'package:environmental_management/utils/my_navigator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:toast/toast.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class detailsScreen extends StatefulWidget {
   @override
@@ -19,10 +21,11 @@ class _detailsScreenState extends State<detailsScreen> {
       typeprocess,
       individualKey,
       personProcess,
+      sound,
       imgPerson;
   bool statusProcess;
   double lat, long;
-
+  AudioPlayer audioPlayer = AudioPlayer();
   dynamic images = new List<String>();
   int _current = 0;
   var listImg = new List<String>();
@@ -68,36 +71,7 @@ class _detailsScreenState extends State<detailsScreen> {
     super.dispose();
   }
 
-//  void _showDialogSuccess() {
-//    showDialog(
-//      context: context, barrierDismissible: false, // user must tap button!
-//      builder: (BuildContext context) {
-//        return new AlertDialog(
-//          title: Container(
-//            alignment: Alignment.center,
-//            child: new Text(
-//              'Xác nhận!!!',
-//              style: TextStyle(color: Colors.red),
-//            ),
-//          ),
-//          content: new SingleChildScrollView(
-//              child: Container(
-//            alignment: Alignment.center,
-//            child: Text("xử lý thành công"),
-//          )),
-//          actions: [
-//            new FlatButton(
-//              child: new Text('Đồng ý'),
-//              onPressed: () {
-//                Navigator.pop(context);
-//                Navigator.of(context).pop();
-//              },
-//            ),
-//          ],
-//        );
-//      },
-//    );
-//  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -116,11 +90,17 @@ class _detailsScreenState extends State<detailsScreen> {
       this.images = arguments['images'];
       this.personProcess = arguments['personProcess'];
       this.imgPerson = arguments['imgPerson'];
+      this.sound = arguments['sound'];
     }
 
-    for (var name in images) {
-      listImg.add(name);
+    if(images == "nodata"){
+
+    }else{
+      for (var name in images) {
+        listImg.add(name);
+      }
     }
+
     print('in' + listImg.length.toString());
     if (statusProcess) {
       msgStatusProcess = "Đã xử lý";
@@ -128,7 +108,16 @@ class _detailsScreenState extends State<detailsScreen> {
     } else {
       msgStatusProcess = "Chưa xử lý";
     }
+    void onPlayAudio(String sound) async {
 
+
+      await audioPlayer.play(sound, isLocal: true);
+    }
+    void onStopAudio(String sound) async {
+
+
+      await  audioPlayer.stop();
+    }
     // print(arguments['images']);
     return Scaffold(
         appBar: AppBar(
@@ -147,7 +136,44 @@ class _detailsScreenState extends State<detailsScreen> {
                 Container(
                     child: Stack(
                   children: <Widget>[
-                    CarouselSlider(
+                    sound.isNotEmpty? new Container(child:
+
+                       Center(
+                         child: Row(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             InkWell(onTap:(){
+                               onPlayAudio(sound);
+                             } ,
+                                 child:  Container(
+                                   alignment: Alignment.center,
+                                   child: CircleAvatar(
+                                     radius: 20,
+                                     backgroundColor: Colors.green,
+                                     backgroundImage: AssetImage(PageImage.IC_PLAY),
+                                   ),
+                                 )
+                             ),
+                             SizedBox(width: 20),
+                             InkWell(onTap:(){
+                               onStopAudio(sound);
+                             } ,
+                                 child:  Container(
+                                   alignment: Alignment.center,
+                                   child: CircleAvatar(
+                                     radius: 20,
+                                     backgroundColor: Colors.green,
+                                     backgroundImage: AssetImage(PageImage.IC_STOP),
+                                   ),
+                                 )
+                             )
+                           ],
+                         ) ,
+
+                       )
+
+
+                    ) : new CarouselSlider(
                       options: CarouselOptions(
                           autoPlay: true,
                           enlargeCenterPage: false,
@@ -162,16 +188,17 @@ class _detailsScreenState extends State<detailsScreen> {
                           }),
                       items: listImg
                           .map((item) => Container(
-                                  child: GestureDetector(
-                                child: Image.network(item,
-                                    fit: BoxFit.cover, width: 1000),
-                                onTap: () {
-                                  print('lick ' + item);
-                                  MyNavigator.goToFullScreen(context, item);
-                                },
-                              )))
+                          child: GestureDetector(
+                            child: Image.network(item,
+                                fit: BoxFit.cover, width: 1000),
+                            onTap: () {
+                              print('lick ' + item);
+                              MyNavigator.goToFullScreen(context, item);
+                            },
+                          )))
                           .toList(),
                     ),
+
                   ],
                 )),
                 SizedBox(height: 20),

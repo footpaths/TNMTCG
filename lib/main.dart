@@ -1,6 +1,6 @@
 import 'package:environmental_management/Constants/Constants.dart';
- import 'package:environmental_management/view/pdfScreen.dart';
-import 'package:environmental_management/view/pdfScreenTest.dart';
+//  import 'package:environmental_management/view/pdfScreen.dart';
+// import 'package:environmental_management/view/pdfScreenTest.dart';
 
 import 'package:flutter/material.dart';
 
@@ -22,8 +22,8 @@ var routes = <String, WidgetBuilder>{
   "/login": (BuildContext context) => LoginScreen(),
   "/choose": (BuildContext context) => ChoosePageScreen(),
   "/map": (BuildContext context) => HomeMapPage(),
-  "/pdf": (BuildContext context) => pdfScreen(),
-  "/pdfT": (BuildContext context) => pdfScreenTest(),
+  // "/pdf": (BuildContext context) => pdfScreen(),
+  // "/pdfT": (BuildContext context) => pdfScreenTest(),
   "/port": (BuildContext context) => report(),
   "/details": (BuildContext context) => detailsScreen(),
   "/fullScreen": (BuildContext context) => FullScreenImg(),

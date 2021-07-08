@@ -4,6 +4,8 @@ class MyNavigator {
   static void goToHome(BuildContext context) {
 //    Navigator.pushNamed(context, "/home");
     Navigator.of(context).pushNamed('/home');
+
+
   }
   static void goToChangePass(BuildContext context) {
 //    Navigator.pushNamed(context, "/home");
@@ -47,49 +49,19 @@ class MyNavigator {
 
   }
   static void goToDetails(BuildContext context,String name, String timestamp, String phone, double lat, double long,
-      String address, String typeprocess, bool statusProcess, String individualKey, dynamic images,String personProcess,String imgPerson) {
+      String address, String typeprocess, bool statusProcess, String individualKey, dynamic images,String personProcess,String imgPerson,String sound) {
 
-    Navigator.of(context).pushNamed('/details',arguments: {'name': name, 'timestamp':timestamp,'phone': phone,'lat': lat,'long': long,'address': address,'typeprocess': typeprocess,'statusProcess': statusProcess,'individualKey': individualKey,'images': images,'personProcess': personProcess,'imgPerson': imgPerson});
+    Navigator.of(context).pushNamed('/details',arguments: {'name': name, 'timestamp':timestamp,'phone': phone,'lat': lat,'long': long,'address': address,'typeprocess': typeprocess,'statusProcess': statusProcess,'individualKey': individualKey,'images': images,'personProcess': personProcess,'imgPerson': imgPerson,"sound":sound});
 
   }
   static void goToPort(BuildContext context) {
-    /*Navigator.of(context).push(
-        new PageRouteBuilder(
-            pageBuilder: (BuildContext context, _, __) {
-              return  report();
-            },
-            transitionsBuilder: (_, Animation<double> animation, __, Widget child) {
-              return new FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(
-                  scale: animation,
-                  child: child,
-                ),
-              );
-            }
-        )
-    );*/
+
     Navigator.of(context).pushReplacementNamed('/port');
 
   }
 
   static void goToConfirm(BuildContext context, String individualKey, String personPro,) {
-    /*Navigator.of(context).push(
-        new PageRouteBuilder(
-            pageBuilder: (BuildContext context, _, __) {
-              return  report();
-            },
-            transitionsBuilder: (_, Animation<double> animation, __, Widget child) {
-              return new FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(
-                  scale: animation,
-                  child: child,
-                ),
-              );
-            }
-        )
-    );*/
+
     Navigator.of(context).pushReplacementNamed('/ConfirmPerson',arguments:{'individualKey': individualKey,'personPro': personPro,});
 
   }

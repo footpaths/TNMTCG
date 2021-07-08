@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -119,6 +120,7 @@ class MyHomePageState extends State<MyHomePage>
           DATA[individualKey]['images'],
           DATA[individualKey]['personProcess'],
           DATA[individualKey]['imgPerson'],
+          DATA[individualKey]['sound']
         );
 
         String subAdminArea = DATA[individualKey]['address'];
@@ -224,10 +226,27 @@ class MyHomePageState extends State<MyHomePage>
 
           }
         }
-        else if (personPro == "qldt@gmail.com") {
-
-          if(typeProcess.contains("Xây dựng trái phép") || typeProcess.contains("Lấn chiếm lòng lề đường")  ){
-
+        // else if (personPro == "qldt@gmail.com") {
+        //
+        //   if(typeProcess.contains("Xây dựng trái phép") || typeProcess.contains("Lấn chiếm lòng lề đường")  ){
+        //
+        //     if (model.statusProcess) {
+        //       _list.add(model);
+        //     } else {
+        //       _listActive.add(model);
+        //     }
+        //   }
+        //
+        //
+        // }
+        else if (personPro == "admin@gmail.com") {
+          if (model.statusProcess) {
+            _list.add(model);
+          } else {
+            _listActive.add(model);
+          }
+        }else if (personPro == "pvhvtt@gmail.com") {
+          if(typeProcess.contains("Ô nhiễm tiếng ồn")){
             if (model.statusProcess) {
               _list.add(model);
             } else {
@@ -235,14 +254,6 @@ class MyHomePageState extends State<MyHomePage>
             }
           }
 
-
-        }
-        else if (personPro == "admin@gmail.com") {
-          if (model.statusProcess) {
-            _list.add(model);
-          } else {
-            _listActive.add(model);
-          }
         }
       }
       if (mounted) {
@@ -301,6 +312,7 @@ class MyHomePageState extends State<MyHomePage>
                 }on Exception catch (_){
 
                 }
+
                 dbRef.child(individualKey).remove();
 //
 //                storageReferance.child(images[0]).delete().then((_) => print('Successfully deleted  storage item' ));
@@ -311,6 +323,84 @@ class MyHomePageState extends State<MyHomePage>
                 dbRef.once().then((DataSnapshot dataSnapshot) {
                   if(dataSnapshot.value == null){
                    // Toast.show("hết", context, duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
+                    setState(() {
+                      _list.clear();
+                      _listActive.clear();
+                    });
+                  }else{
+                    //Toast.show("Còn", context, duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
+                  }
+                });
+              },
+            ),
+            FlatButton(
+              child: Text('Bỏ qua'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<void> _showMyDialogSound(String individualKey, String sound, String imgPerson) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Bạn muốn xóa? '),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Vui lòng kiểm tra trước khi xóa'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Xóa'),
+              onPressed: () async {
+                StorageReference storageReferance =
+                FirebaseStorage.instance.ref();
+
+                try{
+                  String pas = imgPerson
+                      .replaceAll(
+                      new RegExp(
+                          r'https://firebasestorage.googleapis.com/v0/b/managementeviros.appspot.com/o/'),
+                      '')
+                      .split('?')[0];
+
+
+                  await storageReferance.child(pas).delete();
+                }on Exception catch (_){
+
+                }
+                try{
+                  String sounds = sound
+                      .replaceAll(
+                      new RegExp(
+                          r'https://firebasestorage.googleapis.com/v0/b/managementeviros.appspot.com/o/'),
+                      '')
+                      .split('?')[0];
+
+
+                  await storageReferance.child(sounds).delete();
+                }on Exception catch (_){
+
+                }
+                dbRef.child(individualKey).remove();
+//
+//                storageReferance.child(images[0]).delete().then((_) => print('Successfully deleted  storage item' ));
+
+                //dbRef.child(individualKey).remove();
+                Navigator.of(context).pop();
+                dbRef = FirebaseDatabase.instance.reference().child("chats");
+                dbRef.once().then((DataSnapshot dataSnapshot) {
+                  if(dataSnapshot.value == null){
+                    // Toast.show("hết", context, duration: Toast.LENGTH_LONG, gravity: Toast.CENTER);
                     setState(() {
                       _list.clear();
                       _listActive.clear();
@@ -437,6 +527,8 @@ class MyHomePageState extends State<MyHomePage>
                               _listActive[index].images,
                               _listActive[index].personProcess,
                               _listActive[index].imgPerson,
+                              _listActive[index].sound,
+
                             );
                           },
                           onLongPress: () {
@@ -480,12 +572,18 @@ class MyHomePageState extends State<MyHomePage>
                               _list[index].images,
                               _list[index].personProcess,
                               _list[index].imgPerson,
+                              _list[index].sound,
                             );
                           },
                           onLongPress: () {
                             if (personPro.contains("admin@gmail.com")) {
-                              _showMyDialog(_list[index].individualKey,
-                                  _list[index].images,_list[index].imgPerson);
+                              if(_list[index].sound.isEmpty){
+                                _showMyDialog(_list[index].individualKey,
+                                    _list[index].images,_list[index].imgPerson);
+                              }else {
+                                _showMyDialogSound(_list[index].individualKey,_list[index].sound,_list[index].imgPerson);
+                              }
+
                             }
                           },
                         );
@@ -587,7 +685,7 @@ class FunkyOverlayState extends State<FunkyOverlay>
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return new WillPopScope(child: Center(
       child: Material(
         color: Colors.transparent,
         child: ScaleTransition(
@@ -635,6 +733,9 @@ class FunkyOverlayState extends State<FunkyOverlay>
           ),
         ),
       ),
-    );
+    // ignore: missing_return
+    ), onWillPop: (){
+      Navigator.of(context).pop();
+    });
   }
 }

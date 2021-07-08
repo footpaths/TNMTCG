@@ -11,6 +11,7 @@ class reportModel {
   String personProcess;
   String individualKey;
   String subAdminArea;
+  String sound;
   bool statusProcess;
 
 
@@ -29,7 +30,8 @@ class reportModel {
       this.subAdminArea,
       this.images,
       this.personProcess,
-      this.imgPerson
+      this.imgPerson,
+      this.sound,
       );
 
   reportModel.fromSnapshot(DataSnapshot snapshot)
@@ -45,7 +47,8 @@ class reportModel {
         subAdminArea = snapshot.value["subAdminArea"],
         images = snapshot.value["images"],
         personProcess = snapshot.value["personProcess"],
-        imgPerson  = snapshot.value["imgPerson"];
+        imgPerson  = snapshot.value["imgPerson"],
+        sound  = snapshot.value["sound"];
 
   toJson() {
     return {
@@ -62,6 +65,7 @@ class reportModel {
       "images": images,
       "personProcess": personProcess,
       "imgPerson": imgPerson,
+      "sound": sound,
     };
   }
 }
