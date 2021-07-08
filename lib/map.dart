@@ -54,7 +54,7 @@ class _HomeMapPageState extends State<HomeMapPage> {
    @override
   Widget build(BuildContext context) {
 
-    FlutterStatusbarcolor.setStatusBarColor(Colors.transparent);
+    // FlutterStatusbarcolor.setStatusBarColor(Colors.transparent);
     return new WillPopScope(child: Scaffold(
       body: Stack(
         children: <Widget>[
@@ -107,7 +107,7 @@ class _HomeMapPageState extends State<HomeMapPage> {
     // ignore: missing_return
     ), onWillPop: (){
       Navigator.pop(context);
-      FlutterStatusbarcolor.setStatusBarColor(Colors.green);
+      // FlutterStatusbarcolor.setStatusBarColor(Colors.green);
     });
   }
 }

@@ -17,6 +17,7 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="TNMTCanGio"
+        android:largeHeap="true"
         android:icon="@mipmap/launcher_icon">
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDa5orkhlE8l-E8xIeQzKiwuwlwPifP6EI"/>

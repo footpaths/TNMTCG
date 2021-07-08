@@ -92,7 +92,7 @@ class ChoosePageScreenState extends State<ChoosePageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    FlutterStatusbarcolor.setStatusBarColor(Colors.green);
+    // FlutterStatusbarcolor.setStatusBarColor(Colors.green);
     return Scaffold(
 
       body: SafeArea(

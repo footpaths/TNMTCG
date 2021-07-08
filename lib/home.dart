@@ -19,6 +19,7 @@ class MyHomePageState extends State<MyHomePage>
   final _text = TextEditingController();
   bool _validate = false;
   final List<reportModel> _list = List();
+  final List<reportModel> _listTest = List();
   final List<reportModel> _listActive = List();
   reportModel _model;
   DatabaseReference itemRefShop;
@@ -88,7 +89,7 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   void loadData() {
-    dbRef = FirebaseDatabase.instance.reference().child("chats");
+    dbRef = FirebaseDatabase.instance.reference().child("chats").orderByChild('times');
     dbRef.once().then((DataSnapshot dataSnapshot) {
       try {
         if (dataSnapshot.value == null) {
@@ -257,6 +258,7 @@ class MyHomePageState extends State<MyHomePage>
         }
       }
       if (mounted) {
+
         setState(() {
           print('leng: ' + _list.length.toString());
         });

@@ -179,6 +179,7 @@ class _reportPageState extends State<report> {
           "subAdminArea": _subAdminArea,
           "imgPerson": "",
           "sound": url,
+          'times': ServerValue.timestamp
         }).then((val) {
           // print('aaaaaaaaa thanh cong');
           pr.hide();
@@ -224,6 +225,7 @@ class _reportPageState extends State<report> {
         "subAdminArea": _subAdminArea,
         "imgPerson": "",
         "sound": "",
+        'times': ServerValue.timestamp
       }).then((val) {
         // print('aaaaaaaaa thanh cong');
         pr.hide();
@@ -422,7 +424,7 @@ class _reportPageState extends State<report> {
         SizedBox(height: 30),
         new TextFormField(
           decoration: new InputDecoration(hintText: 'Họ tên',border: OutlineInputBorder(),),
-
+          autofocus: false,
           validator: validateName,
           onSaved: (String val) {
             name = val;
@@ -432,8 +434,7 @@ class _reportPageState extends State<report> {
         new TextFormField(
             decoration: new InputDecoration(hintText: 'Số điện thoại',border: OutlineInputBorder(),),
             keyboardType: TextInputType.phone,
-
-
+            autofocus: false,
             validator: validateMobile,
             onSaved: (String val) {
               mobile = val;
@@ -923,17 +924,19 @@ class _reportPageState extends State<report> {
             //Body Container
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     SizedBox(height: 50),
                     Container(
+                      width: MediaQuery.of(context).size.width - 30,
                       child:new Form(
                         key: _key,
                         autovalidate: _validate,
                         child: FormUI(),
+
                       ),
 
                     )
