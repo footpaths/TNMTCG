@@ -1,4 +1,4 @@
-package management.environmental.com.environmental_management
+package mana.env.com.en_ma
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
